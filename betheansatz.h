@@ -25,4 +25,40 @@
 #ifndef ALPS_BETHEANSATZ_H_
 #define ALPS_BETHEANSATZ_H_
 
+#include <alps/parameter/parameters.h>
+#include <alps/parapack/worker.h>
+
+namespace alps {
+namespace betheansatz {
+
+class betheansatz_worker
+    : public alps::parapack::abstract_worker
+{
+public:
+    betheansatz_worker(alps::Parameters const& ps)
+        : alps::parapack::abstract_worker(),
+          params_(ps)
+    {}
+    void init_observables(alps::Parameters const& /* params */,
+                          alps::ObservableSet& /* obs */)
+    {}
+    bool is_thermalized() const {
+        return true;
+    }
+    double progress() const{
+        return 1.0;
+    }
+    void run(alps::ObservableSet& obs) {
+        if (progress() >= 1.0) {
+            return;
+        }
+    }
+
+private:
+    alps::Parameters params_;
+};
+
+} // namespace betheansatz
+} // namespace alps
+
 #endif // ALPS_BETHEANSATZ_H_
