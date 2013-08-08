@@ -21,7 +21,7 @@ include(${ALPS_USE_FILE})
 enable_language(CXX)
 
 # betheansatz
-add_executable(betheansatz main.cc)
+add_executable(betheansatz main.cc betheansatz.cc)
 target_link_libraries(betheansatz ${ALPS_LIBRARIES})
 
 ######################################################################

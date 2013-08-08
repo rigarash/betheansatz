@@ -25,6 +25,10 @@
 #ifndef ALPS_BETHEANSATZ_H_
 #define ALPS_BETHEANSATZ_H_
 
+#include <cmath>
+#include <cstdint>
+#include <iostream>
+
 #include <alps/parameter/parameters.h>
 #include <alps/parapack/worker.h>
 
@@ -52,9 +56,55 @@ public:
         if (progress() >= 1.0) {
             return;
         }
+        double const t = 1.0;
+        double const V = params_["V"] / 2.0;
+        std::size_t const L = params_["L"];
+        std::size_t const N = params_["N"];
+
+        double phi = 0.0;
+
+        double E0  = energy(N,   V, phi);
+        double Ep2 = energy(N+2, V, phi);
+        double Em2 = energy(N-2, V, phi);
+
+        double uK = (Ep2 + Em2 - 2.0 * E0) * L / (4.0 * std::M_PI);
+        std::cout << "u/K = " << uK << std::endl;
+
+        double mu = (Ep2 - Em2) / 4.0;
+        std::cout << "mu  = " << mu << std::endl;
     }
 
 private:
+    double energy(std::size_t const n, double const V, double const phi) const {
+        std::size_t const L = params_["L"];
+        std::vector<double> psi(n, 0.0);
+        std::vector<double> psi0(n, 0.0);
+
+        double const PI = M_PI;
+        double energy  = 0.0;
+        double energy0 = 0.0;
+        do {
+            energy0 = energy;
+            energy = 0.0;
+            for (int i = 0; i < n; ++i) {
+                psi0[i] = 2.0 * PI * n + phi;
+                for (int j = 0; j < n; ++j) {
+                    double temp = V * std::sin((psi(i) - psi(j)) / 2.0)
+                        / (std::cos((psi(i) + psi(j)) / 2.0)
+                           + V * std::cos((psi(i) - psi(j)) / 2.0));
+                    psi0[i] += 2.0 * std::atan(temp);
+                }
+                psi0[i] /= L;
+            }
+            for (int i = 0; i < n; ++i) {
+                psi[i] = psi0[i];
+                energy -= 2.0 * (V + std::cos(psi0[i]));
+            }
+            energy += V * L / 2.0;
+        } while (std::abs(energy - energy0) < 10e-7);
+        return energy;
+    }
+
     alps::Parameters params_;
 };
 
